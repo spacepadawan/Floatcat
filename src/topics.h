@@ -16,8 +16,8 @@ struct SensorData{
 	RODOS::Vector3D_F magnetometer;
 };
 
-Topic<SensorData> SensorDataTopic(-1, "Sensor Data");
-CommBuffer<SensorData> SensorDataBuffer;
-Subscriber SensorDataSubscriber(SensorDataTopic, SensorDataBuffer);
+extern Topic<SensorData> SensorDataTopic;
+extern CommBuffer<SensorData> SensorDataBuffer;
+extern Subscriber SensorDataSubscriber;
 
 #endif /* TOPICS_H_ */

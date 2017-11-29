@@ -41,13 +41,7 @@ private:
     bool readMag(RODOS::Vector3D_F &data);
 
 public:
-    IMU(HAL_SPI* spi, HAL_GPIO *csXM, HAL_GPIO *csG, HAL_GPIO *imuEN = NULL, Semaphore* sem = 0) {
-    	this->spi = spi;
-    	this->csXM = csXM;
-    	this->csG = csG;
-    	this->imuEN = imuEN;
-    	this->sem = sem;
-    }
+    IMU(HAL_SPI* spi, HAL_GPIO *csXM, HAL_GPIO *csG, HAL_GPIO *imuEN = NULL, Semaphore* sem = 0);
 
     bool init();
     void reset();

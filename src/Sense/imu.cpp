@@ -6,13 +6,14 @@
  */
 
 #include "imu.h"
+#include "../Misc/tools.h"
 
 RODOS::Vector3D_F calibG(6.056, -4.156, 13.151);
 RODOS::Vector3D_F calibAcc(-0.233, 0.005, 0);
 
-void delay(int64_t nanos){
-	int64_t start = NOW();
-	while(NOW() < start + nanos);
+IMU::IMU(HAL_SPI* spi, HAL_GPIO *csXM, HAL_GPIO *csG, HAL_GPIO *imuEN, Semaphore* sem) :
+	spi(spi), csXM(csXM), csG(csG), imuEN(imuEN), sem(sem) {
+
 }
 
 int32_t IMU::writeSPI(HAL_GPIO *cs, const uint8_t* txBuf, uint32_t txBufSize) {
