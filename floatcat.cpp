@@ -11,126 +11,169 @@
 #include "hal.h"
 #include "math.h"
 
-#include "src/Sense/sense.h"
 #include "src/topics.h"
+#include "src/Sense/power.h"
 
 #include "src/Actuator/servo.h"
 #include "src/Actuator/reaction_wheel.h"
+#include "src/Actuator/thruster.h"
+#include "src/Actuator/encoder.h"
+#include "src/Actuator/reaction_wheel_control.h"
+
+/*
+ * UART2 - Rx:  PD6  (PA3)              Tx: PD5     (PA2)
+ *         RTS: PD4  (PA1)              CTS:PD3     (PA0)
+ *
+ *         STM PD6 -> Rasp P8
+ *         STM PD5 -> Rasp P10
+ */
 
 static Application module01("Template", 2001);
-
-#define LED_GREEN GPIO_060
-#define LED_ORANGE GPIO_061
-#define LED_RED GPIO_062
-#define LED_BLUE GPIO_063
 
 #define BT_UART UART_IDX2
 #define USB_UART UART_IDX3
 
 #define IMU_I2C I2C_IDX2
 
-HAL_GPIO GreenLED(LED_GREEN);
 
-float wheelDebug = 0;
+HAL_GPIO h_bridge_b_pwm(GPIO_061);
+HAL_GPIO h_bridge_d_pwm(GPIO_063);
 
-class Telemetry: public Thread {
+HAL_GPIO thruster1Pin(GPIO_016);	//connect thruster 1 to H-Bridge B outA
+HAL_GPIO thruster2Pin(GPIO_076);	//connect thruster 2 to H-Bridge D outA
+HAL_GPIO thruster3Pin(GPIO_079);	//connect thruster 3 to H-Bridge D outB
+
+HAL_PWM rw_pwm(RW_PWM_IDX);
+HAL_GPIO rw_in_a(A_PIN);		// connect red to A
+HAL_GPIO rw_in_b(B_PIN);		// connect black to B
+
+HAL_GPIO DCDCOn(GPIO_066);	//PE02
+HAL_GPIO PowerOK(GPIO_067); //PE03
+
+
+Thruster thruster1("Thruster1", &thruster1Pin, 0),
+		thruster2("Thruster2", &thruster2Pin, 1),
+		thruster3("Thruster3", &thruster3Pin, 2);
+
+ReactionWheel rw(&rw_pwm, &rw_in_a, &rw_in_b);
+Servo servo1(PWM_IDX00), servo2(PWM_IDX01), servo3(PWM_IDX02), servo4(PWM_IDX03);
+
+// TODO switch servo 1 and 2 or thruster 1 and 2
+
+HAL_I2C i2c1(I2C_IDX1);
+Semaphore sem_i2c1;
+
+// connect white to PC7, yellow to PC6
+Encoder enc;
+
+#define ENCODER_BEAT	(10*MILLISECONDS)
+
+class PowerThread : public Thread {
+	PowerManager powerManager;
 
 public:
+	PowerThread(const char* name) : powerManager(&i2c1, &sem_i2c1) {
 
-	Telemetry(const char* name) : Thread(name) {
 	}
 
 	void init() {
-		GreenLED.init(true, 1, 0);
-		setPeriodicBeat(1 * MILLISECONDS, 500 * MILLISECONDS);
 	}
 
 	void run() {
+		powerManager.init();
+		PowerValues p_values;
 
-		SensorData sd;
+		TIME_LOOP(1 * MILLISECONDS, 500 * MILLISECONDS)
+		{
+			p_values.i_batt = powerManager.readBatteryCurrent();
+			p_values.i_rw = powerManager.readMotorACurrent();
+			p_values.v_batt = powerManager.readBatteryVoltage();
 
-		while (1) {
-			GreenLED.setPins(~GreenLED.readPins());
-
-			SensorDataBuffer.get(sd);
-			PRINTF("%f:\n", SECONDS_NOW());
-			PRINTF("Ax = %f, Ay = %f, Az = %f\n", sd.accelerometer.x, sd.accelerometer.y, sd.accelerometer.z);
-			PRINTF("Gx = %f, Gy = %f, Gz = %f\n", sd.gyroscope.x, sd.gyroscope.y, sd.gyroscope.z);
-			PRINTF("Mx = %f, My = %f, Mz = %f\n", sd.magnetometer.x, sd.magnetometer.y, sd.magnetometer.z);
-			//PRINTF("SERVO: %f\n", servoDebug);
-			PRINTF("WHEEL: %f\n", wheelDebug);
-
-            suspendUntilNextBeat();
+			powerValues.put(p_values);
 		}
 	}
 };
-Telemetry Telemetry("Telemetry");
+PowerThread powerThread("PowerThread");
 
-class ReactionWheelTest: public Thread {
-	ReactionWheel rw;
+class ActuatorHandler : public Thread {
 	float vel = 0;
-	bool dir = true;
+	ReactionWheelController rw_cont;
 public:
-
-	ReactionWheelTest(const char* name) : Thread(name) {
-	}
+	ActuatorHandler(const char* name) : Thread(name), rw_cont(&rw, &enc) {}
 
 	void init() {
 		rw.init();
-		setPeriodicBeat(2 * MILLISECONDS, 50 * MILLISECONDS);
 	}
 
 	void run() {
 
 
+		int a = enc.init(ENC_POL_NORMAL, ENC_MODE_4AB);
+		//PRINTF("a: %d\n", a);
 
-		while (1) {
-			if (dir) {
-				vel += 0.005;
-				if (vel > 1) {
-					vel = 1;
-					dir = false;
-				}
-			} else {
-				vel -= 0.005;
-				if (vel < -1) {
-					vel = -1;
-					dir = true;
-				}
-			}
 
-			wheelDebug = vel;
 
-			rw.setVelocity(vel);
+		double rps = 0;
+		int64_t pos = 0;
+		TIME_LOOP(NOW() + 5*MILLISECONDS, ENCODER_BEAT)
+		{
+			enc.read_pos();
+			rps = enc.get_rps_lowpass(ENCODER_BEAT);
+			rw_rps.put(rps);
 
-            suspendUntilNextBeat();
+			rw_cmd_power.get(vel);
+			rw_cont.setDesiredRPS(vel);
+			rw_cont.controlLoop(ENCODER_BEAT);
+
+			//rw.setPower(vel);
+
+			//PRINTF("pos: %f, rps: %f\n", pos, rps);
+
+
 		}
 	}
 };
-ReactionWheelTest ReactionWheelTest("ReactionWheelTest");
+ActuatorHandler actuatorHandler("ActuatorHandler");
 
-class ServoTest: public Thread {
-private:
-	Servo servo0, servo1, servo2, servo3;
-	float pos[4];
-	bool dir[4];
 
-	int inc = 0;
+class Actuators : public Thread {
+
 public:
+	Actuators(const char* name) :
+			Thread(name) {
 
-	ServoTest(const char* name) : servo0(PWM_IDX00), servo1(PWM_IDX01), servo2(PWM_IDX02), servo3(PWM_IDX03), Thread(name){
-		pos[0] = 0;
-		pos[1] = 0;
-		pos[2] = 0;
-		pos[3] = 0;
-		dir[0] = false;
-		dir[1] = false;
-		dir[2] = false;
-		dir[3] = false;
 	}
 
 	void init() {
-		servo0.init(-30, 30);
+		DCDCOn.init(true, 1, 0);
+		PowerOK.init(false, 1, 0);
+
+		h_bridge_b_pwm.init(true, 1, 1);
+		h_bridge_d_pwm.init(true, 1, 1);
+	}
+
+	void run() {
+		ThrusterPower tpBuf = {0, 0, 0};
+		thrusterPower.put(tpBuf);
+
+		DCDCOn.setPins(1);
+		dcdcOn = true;
+	}
+};
+Actuators ActuatorThread("ActuatorThread");
+
+
+class ServoTest: public Thread {
+private:
+
+public:
+
+	ServoTest(const char* name) : Thread(name){
+
+	}
+
+	void init() {
+		servo4.init(-45, 45);	//Camera Servo : -40 means looking down, +50 means looking forward
 		servo1.init(-30, 30);
 		servo2.init(-30, 30);
 		servo3.init(-30, 30);
@@ -138,30 +181,20 @@ public:
 	}
 
 	void run() {
+		ServoData positions = {0, 0, 0, 0};
+
+		servo3.setBoundaries(-11, 11);
+
 		while (1) {
-			for (int k = 0; k < 3; k++) {
-				if (dir[k]) {
-					pos[k] += 1;
-					if (pos[k] > 40) {
-						dir[k] = false;
-						pos[k] = 40;
-					}
-				} else {
-					pos[k] -= 1;
-					if (pos[k] < -40) {
-						dir[k] = true;
-						pos[k] = -40;
-					}
-				}
-			}
-			servo0.write(pos[1]);
-			servo1.write(pos[1]);
-			servo2.write(pos[1]);
-			servo3.write(pos[1]);
+			servoPositions.get(positions);
+			servo1.write(positions.pos1);
+			servo2.write(positions.pos2);
+			servo3.write(positions.pos3);
+			servo4.write(positions.pos4);
 			suspendUntilNextBeat();
 		}
 	}
 };
-//ServoTest ServoTest("ServoTest");
+ServoTest ServoTest("ServoTest");
 
 /***********************************************************************/

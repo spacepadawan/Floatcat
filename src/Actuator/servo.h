@@ -24,34 +24,25 @@ class Servo {
 private:
 	HAL_PWM pwm;
 	float min, max;
+	uint16_t minBoundary, maxBoundary;
+
+	int angleToInc(float deg);
 public:
 	/**
 	 * @param idx	Use PWM_IDX00, PWM_IDX01, PWM_IDX02 or PWM_IDX03 and connect the servos to the extension board accordingly
 	 */
-	Servo(PWM_IDX idx) : pwm(idx) {
-		min = -30;
-		max = 30;
-	}
+	Servo(PWM_IDX idx);
 
-	void init(float min, float max) {
-		pwm.init(SERVO_FREQUENCY, SERVO_INCREMENTS);
-		this->min = min;
-		this->max = max;
-	}
+	void init(float min, float max);
+
+	void setBoundaries(float min, float max);
 
 	/**
 	 * @param deg	angle in degree, [-30, +30]
 	 */
-	void write(float deg) {
-		int inc = INC_AT_ZERO + ((float) ((deg - min) / (max - min)) * (INC_AT_MAX - INC_AT_ZERO));
-		writeInc(inc);
-	}
+	void write(float deg);
 
-	void writeInc(int inc) {
-		inc = inc > MAX_INC ? MAX_INC : inc;
-		inc = inc < MIN_INC ? MIN_INC : inc;
-		pwm.write(inc);
-	}
+	void writeInc(int inc);
 
 	float getMax() { return max; }
 	float getMin() { return min; }

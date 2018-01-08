@@ -140,6 +140,21 @@ private:
 	//Store address given when the class is initialized.
 	//This value can be changed by the changeAddress() function
 	int _i2caddress;
+
+	/*
+	 * for i2c1
+	 * SCL pin config -> PB8
+	 * SDA pin config -> PB9
+	 */
+
+	/*
+	 * for i2c2
+	 * SCL pin config -> PB10
+	 * SDA pin config -> PB11
+	 */
+
+	// Connect one sensor to i2c1, the other to i2c2
+
 	HAL_I2C* i2c;
 	Semaphore *sem;
 
