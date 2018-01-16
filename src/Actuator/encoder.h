@@ -128,20 +128,6 @@ public:
 
 	/*
 	 * In order to get proper value call ONLY ONCE (for each iteration) read_pos() at the beginning of loop iteration
-	 * Returns Rotation degree relative to start position
-	 */
-	int64_t get_rot_deg();
-
-	/*
-	 * In order to get proper value call ONLY ONCE (for each iteration) read_pos() at the beginning of loop iteration
-	 * @param long long beat: Specify period duration of loop iteration (Sample Time)
-	 * Returns Rotation speed in degree per second
-	 */
-	int32_t get_rot_speed(long long beat);
-	int32_t get_rot_speed_abs(long long beat);
-
-	/*
-	 * In order to get proper value call ONLY ONCE (for each iteration) read_pos() at the beginning of loop iteration
 	 * @param long long beat: Specify period duration of loop iteration (Sample Time)
 	 * Returns Rotation speed in revolutions per second
 	 */

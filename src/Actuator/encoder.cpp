@@ -165,25 +165,6 @@ int64_t Encoder::get_pos_rel_to_start()
 }
 
 
-int64_t Encoder::get_rot_deg()
-{
-	return (int64_t) (get_pos_rel_to_start() * 360) / (coding_factor * cpr);
-}
-
-
-int32_t Encoder::get_rot_speed(long long beat)
-{
-	return (SECONDS / beat) * 360 * counter_dif / (coding_factor * cpr);
-}
-
-
-int32_t Encoder::get_rot_speed_abs(long long beat)
-{
-	int32_t speed_abs = get_rot_speed(beat);
-	return MY_ABS(speed_abs);
-}
-
-
 double Encoder::get_rps(long long beat)
 {
 	return (double) (SECONDS / beat) * counter_dif / (coding_factor * cpr);

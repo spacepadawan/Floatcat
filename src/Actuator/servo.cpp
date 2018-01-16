@@ -10,14 +10,14 @@
 Servo::Servo(PWM_IDX idx) : pwm(idx) {
 	min = -30;
 	max = 30;
+	minBoundary = MIN_INC;
+	maxBoundary = MAX_INC;
 }
 
 void Servo::init(float min, float max) {
 	pwm.init(SERVO_FREQUENCY, SERVO_INCREMENTS);
 	this->min = min;
 	this->max = max;
-	minBoundary = MIN_INC;
-	maxBoundary = MAX_INC;
 }
 
 void Servo::setBoundaries(float min, float max) {
