@@ -124,12 +124,6 @@ public:
 			rw_cmd_power.get(vel);
 			rw_cont.setDesiredRPS(vel);
 			rw_cont.controlLoop(ENCODER_BEAT);
-
-			//rw.setPower(vel);
-
-			//PRINTF("pos: %f, rps: %f\n", pos, rps);
-
-
 		}
 	}
 };

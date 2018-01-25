@@ -28,7 +28,7 @@ public:
 
 		TIME_LOOP(NOW(), 1000 * MILLISECONDS)
 		{
-			//PRINTF("Sending TM\n");
+			PRINTF("Sending TM\n");
 
 			//TODO catch all the tm and forward it
 			SensorDataBuffer.get(sd);
@@ -50,8 +50,8 @@ public:
 			poseBuffer.get(pose);
 			tm.phi = pose.phi;
 			// Example:
-			tm.x = 42;
-			tm.y = 17;
+			tm.x = pose.x;
+			tm.y = pose.y;
 
 			double rps;
 			rw_rps.get(rps);

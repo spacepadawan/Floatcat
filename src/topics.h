@@ -36,7 +36,7 @@ union ThrusterPower {
 };
 
 struct Pose {
-	double x, y, phi;
+	float x, y, phi;
 };
 
 extern bool dcdcOn;
@@ -55,5 +55,6 @@ extern CommBuffer<PowerValues> powerValues;
 extern CommBuffer<ThrusterPower> thrusterPower;
 
 extern CommBuffer<Pose> poseBuffer;
+extern CommBuffer<Pose> starTrackerDataBuffer;
 
 #endif /* TOPICS_H_ */

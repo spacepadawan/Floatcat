@@ -16,16 +16,25 @@
 class Filter {
 
 private:
-
-	float heading = 0;
 	float factor = 0.05; // between 0 and 1, 0 means only gyro, 1 means only magnetometer
+
+	Pose pose;
+	Pose oldPose;
+
+	int64_t updateTime;
+
+	float vx = 0, vy = 0;
 
 public:
 	Filter() {
-
+		pose.x = 0;
+		pose.y = 0;
+		pose.phi = 0;
+		oldPose = pose;
 	}
 
-	float filterHeading(SensorData* sd, uint64_t dt);
+	Pose filterPose(SensorData* sd, uint64_t dt);
+	void updatePose(Pose p);
 };
 
 

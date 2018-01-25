@@ -94,9 +94,14 @@ public:
 #endif
 
 			SensorDataTopic.publish(sd, false);
-			poseBuffer.get(pose);
+			//poseBuffer.get(pose);
 
-			pose.phi = filter.filterHeading(&sd, SENSE_PERIOD);
+			Pose starTrackerPose;
+			if (starTrackerDataBuffer.getOnlyIfNewData(starTrackerPose)) {
+				filter.updatePose(starTrackerPose);
+			}
+
+			Pose pose = filter.filterPose(&sd, SENSE_PERIOD);
 			poseBuffer.put(pose);
 
 			suspendUntilNextBeat();

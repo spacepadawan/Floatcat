@@ -19,5 +19,6 @@ CommBuffer<PowerValues> powerValues;
 CommBuffer<ThrusterPower> thrusterPower;
 
 CommBuffer<Pose> poseBuffer;
+CommBuffer<Pose> starTrackerDataBuffer;
 
 bool dcdcOn = false;
