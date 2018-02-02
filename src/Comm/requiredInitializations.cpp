@@ -22,6 +22,10 @@ class GatewayInitiator : public Initiator {
 	   gw.resetTopicsToForward();
 	   gw.addTopicsToForward(&telemetry);
 	   gw.addTopicsToForward(&telecommand);
+	   gw.addTopicsToForward(&thrusterCommandTopic);
+	   gw.addTopicsToForward(&controlCommandTopic);
+	   gw.addTopicsToForward(&parameterTopicIn);
+	   gw.addTopicsToForward(&parameterTopicOut);
 	   //.... More Topics to come
 	   //....
 	   //....

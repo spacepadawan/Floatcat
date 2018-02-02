@@ -132,7 +132,19 @@ public:
 	 * Returns Rotation speed in revolutions per second
 	 */
 	double get_rps(long long beat);
+
+	/*
+	 * In order to get proper value call ONLY ONCE (for each iteration) read_pos() at the beginning of loop iteration
+	 * @param long long beat: Specify period duration of loop iteration (Sample Time)
+	 * Returns Rotation speed in revolutions per second
+	 */
 	double get_rps_abs(long long beat);
+
+	/*
+	 * In order to get proper value call ONLY ONCE (for each iteration) read_pos() at the beginning of loop iteration
+	 * @param long long beat: Specify period duration of loop iteration (Sample Time)
+	 * Returns Rotation speed in revolutions per second after feeding it through a lowpass filter
+	 */
 	double get_rps_lowpass(long long beat);
 };
 

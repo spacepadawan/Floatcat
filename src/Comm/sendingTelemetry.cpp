@@ -25,13 +25,14 @@ public:
 		SensorData sd;
 		PowerValues p_values;
 		Pose pose;
+		RangeData rd;
 
-		TIME_LOOP(NOW(), 1000 * MILLISECONDS)
+		TIME_LOOP(NOW(), 500 * MILLISECONDS)
 		{
-			PRINTF("Sending TM\n");
+			//PRINTF("Sending TM\n");
 
 			//TODO catch all the tm and forward it
-			SensorDataBuffer.get(sd);
+			SensorDataInfo.get(sd);
 
 			tm.ax = sd.accelerometer.x;
 			tm.ay = sd.accelerometer.y;
@@ -47,20 +48,37 @@ public:
 
 
 
-			poseBuffer.get(pose);
+			poseInfo.get(pose);
 			tm.phi = pose.phi;
 			// Example:
 			tm.x = pose.x;
 			tm.y = pose.y;
 
-			double rps;
-			rw_rps.get(rps);
+			float rps;
+			rw_rpsInfo.get(rps);
 			tm.enc_rps = rps;
 
-			powerValues.get(p_values);
+			powerValuesInfo.get(p_values);
 
 			tm.i_rw = p_values.i_rw;
 			tm.v_bat = p_values.v_batt;
+
+			rangeDataInfo.get(rd);
+
+			tm.r_left = rd.left;
+			tm.r_right = rd.right;
+
+			starTrackerDataInfo.get(pose);
+			tm.star_x = pose.x;
+			tm.star_y = pose.y;
+			tm.star_phi = pose.phi;
+
+			poseDotInfo.get(pose);
+			tm.x_dot = pose.x;
+			tm.y_dot = pose.y;
+			tm.phi_dot = pose.phi;
+
+			//PRINTF("left: %f, right: %f \n", tm.rangeLeft, tm.rangeRight);
 
 			telemetry.publish(tm);
 		} // end time loop

@@ -12,8 +12,22 @@ Pose Filter::filterPose(SensorData* sd, uint64_t dt) {
 
 	float deltaT = (float) dt / SECONDS;
 
+	angularRates[currentSumIndex] = sd->gyroscope.z;
+	angularRateSum += sd->gyroscope.z;
+	currentSumIndex = (currentSumIndex + 1) % LOWPASS_SAMPLES;
+	angularRateSum -= angularRates[currentSumIndex];
+
+	poseDot.phi = angularRateSum / LOWPASS_SAMPLES;
+	//angularRateTopic.publish(angularRateLowpass);
+
+	poseDotTopic.publish(poseDot);
+
+
+	//float heading = pose.phi + sd->gyroscope.z * deltaT;
+
+	/*
 	//Filter using magnetometer
-	float heading = pose.phi;
+
 	float magHeading = 180 * atan2f(sd->magnetometer.x, sd->magnetometer.y) / M_PI;
 	float gyroHeading = heading + sd->gyroscope.z * deltaT;
 
@@ -27,16 +41,25 @@ Pose Filter::filterPose(SensorData* sd, uint64_t dt) {
 
 	heading = magHeading * factor + gyroHeading * (1 - factor);
 
-	if (heading >= 180.0) heading -= 360;
-	if (heading < -180.0) heading += 360;
+	*/
 
-	pose.phi = heading;
+	pose.phi += sd->gyroscope.z * deltaT;
+
+	if (pose.phi >= 180.0) pose.phi -= 360;
+	if (pose.phi < -180.0) pose.phi += 360;
 
 	//Filter using accelerometer
 	float s = sin(pose.phi * M_PI / 180);
 	float c = cos(pose.phi * M_PI / 180);
-	vx += c * sd->accelerometer.x * deltaT - s * sd->accelerometer.y * deltaT / 9.81;
-	vy += c * sd->accelerometer.y * deltaT + s * sd->accelerometer.x * deltaT / 9.81;
+
+	float ax = - c * sd->accelerometer.x + s * sd->accelerometer.y;
+	float ay = - c * sd->accelerometer.y - s * sd->accelerometer.x;
+
+	//just remove this line if the accelerometer should be used
+	//ax = ay = 0;
+
+	//vx += ax * deltaT * 9.81;
+	//vy += ay * deltaT * 9.81;
 
 	pose.x += vx * deltaT;
 	pose.y += vy * deltaT;
@@ -51,13 +74,23 @@ void Filter::updatePose(Pose p) {
 	oldPose = pose;
 	pose = p;
 
-	if (timeDif > 1 * SECONDS) {
+	if (timeDif > 2 * SECONDS) {
 		vx = 0;
 		vy = 0;
 	} else {
-		vx = (pose.x - oldPose.x) / (timeDif / SECONDS);
-		vy = (pose.y - oldPose.y) / (timeDif / SECONDS);
+		poseDot.x = (pose.x - oldPose.x) /  ((float) timeDif / SECONDS);
+		poseDot.y = (pose.y - oldPose.y) /  ((float) timeDif / SECONDS);
 	}
+
+	poseDot.x = poseDot.x > 0.5 ? 0.5 : poseDot.x;
+	poseDot.x = poseDot.x < -0.5 ? -0.5 : poseDot.x;
+	poseDot.y = poseDot.y > 0.5 ? 0.5 : poseDot.x;
+	poseDot.y = poseDot.y < -0.5 ? -0.5 : poseDot.x;
+
+	// delete if necessary
+	//vx = vy = 0;
+
+	//PRINTF("v: %f, %f", vx, vy);
 
 	updateTime = t;
 }

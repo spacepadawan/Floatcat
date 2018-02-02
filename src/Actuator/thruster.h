@@ -29,11 +29,15 @@ private:
 public:
 	Thruster(const char* name, HAL_GPIO* pin, uint8_t id) : pin(pin), Thread(name), id(id) { }
 
-	void init();
-	void run();
-	/*
-	 *
+	/**
+	 * this initializes only the pin used to toggle the specified h-bridge output. The h-bridge pwm needs
+	 * to be initialized elsewhere. This method is called by rodos
 	 */
+	void init();
+	/**
+	 * as this is instantiated as an own thread, it needs to run
+	 */
+	void run();
 };
 
 

@@ -14,7 +14,7 @@ ReactionWheelController::ReactionWheelController(ReactionWheel *rw, Encoder *enc
 	params.kp = 0.1;
 	params.kd = 0;
 	params.ki = 0;//0.0035;
-	rw_ctrl_params.put(params);
+	rw_ctrl_params.publish(params);
 }
 
 void ReactionWheelController::setDesiredRPS(float rps) {
@@ -25,8 +25,10 @@ void ReactionWheelController::setDesiredRPS(float rps) {
 }
 
 void ReactionWheelController::controlLoop(int64_t beat) {
+
 	dif = rps_des - enc->get_rps_lowpass(beat); // control error
-	float delta_dif = (dif - dif_old) / ((float) beat / (float) SECONDS);
+
+	/*float delta_dif = (dif - dif_old) / ((float) beat / (float) SECONDS);
 
 	if (dif / sum < 0) {
 		sum = 0;
@@ -36,10 +38,12 @@ void ReactionWheelController::controlLoop(int64_t beat) {
 
 	sum = sum > sum_max ? sum_max : sum;
 	sum = sum < -sum_max ? -sum_max : sum;
+*/
 
-	rw_ctrl_params.get(params);
+	//rw_ctrl_params_buffer.get(params);
 
-	float output = params.kp * dif + params.kd * delta_dif + params.ki * sum + pwm_inf;
+
+	float output = pwm_inf + params.kp * dif;// + params.kd * delta_dif + params.ki * sum;
 
 	rw->setPower(output);
 

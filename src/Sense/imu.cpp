@@ -40,6 +40,7 @@ int32_t IMU::writeReadSPI(HAL_GPIO *cs, const uint8_t* txBuf, uint32_t txBufSize
 }
 
 bool IMU::init(){
+	//spi->init();
 	csXM->init(true, 1, 1);
 	csG->init(true, 1, 1);
 	if (imuEN != NULL)

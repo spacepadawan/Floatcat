@@ -13,6 +13,8 @@
 #include "VL6180X.h"
 #include "../Misc/tools.h"
 
+#include "rodos.h"
+
 VL6180x::VL6180x(uint8_t address, HAL_I2C* i2c, Semaphore* sem)
 // Initialize the Library
 {
@@ -119,7 +121,11 @@ uint8_t VL6180x::changeAddress(uint8_t old_address, uint8_t new_address) {
 	if (new_address > 127)
 		return old_address;
 
+
+
 	VL6180x_setRegister(VL6180X_I2C_SLAVE_DEVICE_ADDRESS, new_address);
+
+	_i2caddress = new_address;
 
 	return VL6180x_getRegister(VL6180X_I2C_SLAVE_DEVICE_ADDRESS);
 }

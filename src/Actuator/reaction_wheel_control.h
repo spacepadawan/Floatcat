@@ -29,9 +29,26 @@ private:
 	PID_ControlParameters params;
 
 public:
+	/**
+	 * @param rw	the reaction wheel actuator handler, needs to be initialized elsewhere
+	 * @param enc	the encoder handler giving the lowpass filtered rps of the reaction wheel,
+	 * 				needs to be initialized elsewhere
+	 */
 	ReactionWheelController(ReactionWheel *rw, Encoder *enc);
 
+	/**
+	 * Set the desired rps value that the reaction wheel should spin
+	 * @param rps	the desired rotational velocity of the wheel
+	 */
 	void setDesiredRPS(float rps);
+
+	/**
+	 * call once in a time loop for the controller to work
+	 *
+	 * The controller itself is a combination of feed-forward and a basic p-controller
+	 *
+	 * @param int64_t beat: Specify period duration of loop iteration (Sample Time)
+	 */
 	void controlLoop(int64_t beat);
 };
 

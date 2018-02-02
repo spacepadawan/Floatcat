@@ -33,15 +33,25 @@ public:
 	 */
 	Servo(PWM_IDX idx);
 
+	/**
+	 * initialize the servo with its nominal angles at INC_AT_ZERO and INC_AT_MAX
+	 */
 	void init(float min, float max);
 
+	/**
+	 * set boundaries to the servo handler to prevent the servo from turning into physically unreachable positions (i.e. due to obstructions)
+	 */
 	void setBoundaries(float min, float max);
 
 	/**
+	 * set a specified angle for the servos,
 	 * @param deg	angle in degree, [-30, +30]
 	 */
 	void write(float deg);
 
+	/**
+	 * directly write the pwm increments to the servo motor, this can't bypass the set boundaries
+	 */
 	void writeInc(int inc);
 
 	float getMax() { return max; }

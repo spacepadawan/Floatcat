@@ -19,7 +19,7 @@ enum LinkState {
 #define ID_LENGTH			2
 #define ARGUMENT_LENGTH		10
 
-#define MAX_ARGUMENTS		3
+#define MAX_ARGUMENTS		4
 
 #define START_CHARACTER		'$'
 #define END_CHARACTER		'\n'
@@ -49,7 +49,9 @@ inline void handleMessage(Message &msg) {
 		p.y = msg.args[1];
 		p.phi = msg.args[2];
 
-		starTrackerDataBuffer.put(p);
+		//PRINTF("Star Tracker: (%f, %f, %f)\n", p.x, p.y, p.phi);
+
+		starTrackerPoseTopic.publish(p);
 		break;
 	case OT:
 
@@ -81,7 +83,7 @@ HAL_UART uart_stdout(UART_IDX5);	//                tx-PC12   rx-PD2
 char usart_buffer[USART_BUFFER_SIZE];
 
 class RaspberryLink: public Thread {
-	char recv;
+	char received;
 	int64_t start;
 
 	LinkState state;
@@ -133,10 +135,11 @@ public:
 			}
 
 			//uart_stdout.suspendUntilDataReady();
-			while (uart_stdout.read(&recv, 1)) {
+			while (uart_stdout.read(&received, 1)) {
+				//PRINTF("%c", received);
 				switch (state) {
 				case NEW_MSG:
-					if (recv == START_CHARACTER) {
+					if (received == START_CHARACTER) {
 						start = time;
 						state = ID;
 						//qDebug() << "start reading";
@@ -148,11 +151,11 @@ public:
 				case ID:
 
 					if (currentReadIndex < ID_LENGTH) {
-						id[currentReadIndex] = recv;
+						id[currentReadIndex] = received;
 						currentReadIndex++;
 						//qDebug() << "character added to ID";
 					} else {
-						if (recv == DELIMITER) {
+						if (received == DELIMITER) {
 							state = ARGUMENT;
 							currentReadIndex = 0;
 							//qDebug() << "ID complete";
@@ -163,7 +166,7 @@ public:
 					}
 					break;
 				case ARGUMENT:
-					if (recv == DELIMITER || recv == END_CHARACTER) {
+					if (received == DELIMITER || received == END_CHARACTER) {
 						if (currentReadIndex == 0) {
 							//qDebug() << "Argument can't be empty";
 							corrupt = true;
@@ -171,19 +174,28 @@ public:
 						}
 
 						if (currentReadIndex < ARGUMENT_LENGTH - 1) {
+							//PRINTF(data);
+							//PRINTF("Filling up the argument buffer\n");
 							if (!dot) {
 								data[currentReadIndex++] = '.';
+								//PRINTF("Dot has been added\n");
 							}
 							while (currentReadIndex < ARGUMENT_LENGTH) {
 								data[currentReadIndex++] = '0';
 							}
 						}
+						//PRINTF(data);
+						//PRINTF("\n");
 
 						arguments[currentArgIndex] = atof(data);
-
+						/*
+						if (data[0] == '-') {
+							arguments[currentArgIndex] *= -1;
+						}
+						*/
 						//qDebug() << data[0] << data[1] << data[2] << data[3] << data[4] << data[5] << data[6] << data[7] << data[8] << data[9];
 
-						if (recv == DELIMITER) {
+						if (received == DELIMITER) {
 							currentArgIndex++;
 							if (currentArgIndex >= MAX_ARGUMENTS) {
 								//qDebug() << "too many arguments";
@@ -195,15 +207,16 @@ public:
 							currentReadIndex = 0;
 							break;
 
-						} else if (recv == END_CHARACTER) {
+						} else if (received == END_CHARACTER) {
 
 							// finish it
 							Message msg;
 							msg.type = getMessageType(id[0], id[1]);
 
-							msg.args[0] = arguments[0] / 1000;
-							msg.args[1] = arguments[1] / 1000;
+							msg.args[0] = arguments[0];
+							msg.args[1] = arguments[1];
 							msg.args[2] = arguments[2];
+							msg.args[3] = arguments[3];
 
 							msg.numberOfArguments = currentArgIndex + 1;
 							msg.timeStamp = start;
@@ -222,25 +235,28 @@ public:
 					if (currentReadIndex < ARGUMENT_LENGTH) {
 						//qDebug() << "reading Number";
 						// if there is a minus inbetween a number, it must be corrupt
-						if (currentReadIndex > 0 && recv == '-') {
-							//qDebug() << "unexpected '-'";
-							corrupt = true;
-							break;
-						}
-						data[currentReadIndex++] = recv;
-						if (recv == '.') {
+
+						data[currentReadIndex] = received;
+						if (received == '.') {
+							//data[currentReadIndex] = '.';
 							if (dot) {
 								//qDebug() << "too many dots in one number";
 								corrupt = true;
+								break;
 							} else {
 								dot = true;
+								//PRINTF("Dot detected");
 							}
-							break;
+
 						}
 
-						if (!(recv == '0' || recv == '1' || recv == '2' || recv == '3' || recv == '4' || recv == '5' || recv == '6' || recv == '7' || recv == '8' || recv == '9')) {
-							corrupt = true;
+						if (!(received == '0' || received == '1' || received == '2' || received == '3' || received == '4' || received == '5' || received == '6' || received == '7' || received == '8' || received == '9')) {
+							if (received == '-' && currentReadIndex > 0 ) {
+								corrupt = true;
+								break;
+							}
 						}
+						currentReadIndex++;
 					} else {
 						corrupt = true;
 						//qDebug() << "too long";
@@ -251,9 +267,32 @@ public:
 
 				if (corrupt) {
 					//qDebug() << "ERROR";
+					PRINTF("Corrupt\n");
 					resetTC();
 				}
 			}
+
+			RaspberryCommand cmd;
+			if (raspberryCMDBuffer.getOnlyIfNewData(cmd)) {
+
+				switch (cmd) {
+				case CMD_START_STARTRACKER:
+					uart_stdout.write("$ST1\n", 5);
+					break;
+				case CMD_START_OBJECTDETECTION:
+					uart_stdout.write("$OT1\n", 5);
+					break;
+				case CMD_START_RADIO:
+					uart_stdout.write("$RD1\n", 5);
+					break;
+				case CMD_PAUSE:
+					uart_stdout.write("$OT0\n", 5);
+					uart_stdout.write("$ST0\n", 5);
+					uart_stdout.write("$RD0\n", 5);
+					break;
+				}
+			}
+
 			suspendUntilNextBeat();
 		}
 

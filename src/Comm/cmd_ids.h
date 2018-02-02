@@ -8,13 +8,6 @@
 #ifndef COMM_CMD_IDS_H_
 #define COMM_CMD_IDS_H_
 
-/*
-enum cmd_id {
-	CMD_SET_RW_SPEED = 0,
-	CMD_HELLO,
-	CMD_SET_CAM_ANGLE
-};
-*/
 
 enum cmd_id {
 	CMD_SET_RW_SPEED = 'R',
@@ -26,13 +19,18 @@ enum cmd_id {
 	CMD_SET_SERVO3 = 'C',
 	CMD_SET_SERVO4 = 'D',
 
-	CMD_SET_RW_P = 'Q',
-	CMD_SET_RW_I = 'W',
-	CMD_SET_RW_D = 'E',
+	CMD_SEND_PARAMS = 'Q',
 
 	CMD_SET_THRUSTER1 = 'j',
 	CMD_SET_THRUSTER2 = 'k',
-	CMD_SET_THRUSTER3 = 'l'
+	CMD_SET_THRUSTER3 = 'l',
+
+	CMD_SET_ROTATIONSPEED	= 'm',
+
+	CMD_SET_MODE_MANUAL = 'y',
+	CMD_SET_MODE_ANGULAR_CONTROL = 'a',
+	CMD_SET_MODE_POSE_CONTROL = 'x',
+	CMD_SET_MODE_MISSION = 'M'
 };
 
 

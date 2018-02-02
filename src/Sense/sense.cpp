@@ -37,6 +37,8 @@ private:
 	IMU imu;
 	Filter filter;
 
+	CalibrationData calib;
+
 public:
 
 	Sense(const char* name) :
@@ -49,6 +51,13 @@ public:
 		setPeriodicBeat(0, SENSE_PERIOD);
 		spi.reset();
 		spi.init();
+
+		Pose initPose;
+		initPose.phi = 0;
+		initPose.x = 1;
+		initPose.y = 1;
+
+		poseBuffer.put(initPose);
 
 		imu.init();
 	}
@@ -65,44 +74,54 @@ public:
 		double gyroXSum = 0, gyroYSum = 0, gyroZSum = 0;
 		double accXSum = 0, accYSum = 0;
 #endif
+		calib = {0};
+		calibTopic.publish(calib);
 
 		while (1) {
 
 			imu.readIMU(sd.accelerometer, sd.gyroscope, sd.magnetometer);
 
 
-#ifdef CALIBRATE
+//#ifdef CALIBRATE
 			if (calibrationCounter < samples) {
 				//PRINTF("Calibration of gyro: %f, %f, %f\n", gyroXSum, gyroYSum, gyroZSum);
 				//PRINTF("Calibration of acc: %f, %f\n", accXSum, accYSum);
 
-				gyroXSum += sd.gyroscope.x / samples;
-				gyroYSum += sd.gyroscope.y / samples;
-				gyroZSum += sd.gyroscope.z / samples;
+				gyroZSum += sd.gyroscope.z;
 
-				accXSum += sd.accelerometer.x / samples;
-				accYSum += sd.accelerometer.y / samples;
+				accXSum += sd.accelerometer.x;
+				accYSum += sd.accelerometer.y;
 
 				calibrationCounter++;
+			} else if (calibrationCounter == samples) {
+				accXSum /= samples;
+				accYSum /= samples;
+				gyroZSum /= samples;
+
+				calib.gz = gyroZSum;
+				calib.ax = accXSum;
+				calib.ay = accYSum;
+				calibTopic.publish(calib);
+
+				calibrationCounter++;
+			} else {
+				imuCalibrationBuffer.getOnlyIfNewData(calib);
+
+				sd.accelerometer.x -= calib.ax;
+				sd.accelerometer.y -= calib.ay;
+				sd.gyroscope.z -= calib.gz;
+				SensorDataTopic.publish(sd, false);
+				Pose pose = filter.filterPose(&sd, SENSE_PERIOD);
+				poseTopic.publish(pose);
 			}
 
-			sd.accelerometer.x -= accXSum;
-			sd.accelerometer.y -= accYSum;
-			sd.gyroscope.x -= gyroXSum;
-			sd.gyroscope.y -= gyroYSum;
-			sd.gyroscope.z -= gyroZSum;
-#endif
 
-			SensorDataTopic.publish(sd, false);
+//#endif
+
+
 			//poseBuffer.get(pose);
 
-			Pose starTrackerPose;
-			if (starTrackerDataBuffer.getOnlyIfNewData(starTrackerPose)) {
-				filter.updatePose(starTrackerPose);
-			}
 
-			Pose pose = filter.filterPose(&sd, SENSE_PERIOD);
-			poseBuffer.put(pose);
 
 			suspendUntilNextBeat();
 		}
