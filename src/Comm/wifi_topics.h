@@ -69,6 +69,7 @@ struct Parameters
 	float rw_kp, rw_ki, rw_kd;
 	float ang_kp, ang_ki, ang_kd;
 	float pos_kp, pos_ki, pos_kd;
+	float heading_kp, heading_ki, heading_kd;
 
 	float off1, off2, off3, off4;
 

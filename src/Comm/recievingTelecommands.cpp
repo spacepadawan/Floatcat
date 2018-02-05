@@ -26,7 +26,7 @@ public:
 	void put(Parameters &data) {
 		Parameters* params = (Parameters*) &data;
 
-		PID_ControlParameters ang_params, lat_params, rw_params;
+		PID_ControlParameters ang_params, lat_params, rw_params, heading_params;
 
 		ang_params.kp = params->ang_kp;
 		ang_params.ki = params->ang_ki;
@@ -40,9 +40,14 @@ public:
 		rw_params.ki = params->rw_ki;
 		rw_params.kd = params->rw_kd;
 
+		heading_params.kp = params->heading_kp;
+		heading_params.ki = params->heading_ki;
+		heading_params.kd = params->heading_kd;
+
 		angular_ctrl_params.publish(ang_params);
 		lateral_ctrl_params.publish(lat_params);
 		rw_ctrl_params.publish(rw_params);
+		heading_ctrl_params.publish(heading_params);
 
 		bool on = params->dcdc_on > 0.5;
 		dcdcOn.publish(on);
@@ -223,11 +228,12 @@ public:
 			break;
 		case CMD_SEND_PARAMS:
 
-			PID_ControlParameters ang_params, lat_params, rw_params;
+			PID_ControlParameters ang_params, lat_params, rw_params, heading_params;
 
 			angular_ctrl_params_info.get(ang_params);
 			lateral_ctrl_params_info.get(lat_params);
 			rw_ctrl_params_info.get(rw_params);
+			heading_ctrl_params_info.get(heading_params);
 
 			params.ang_kp = ang_params.kp;
 			params.ang_ki = ang_params.ki;
@@ -240,6 +246,10 @@ public:
 			params.rw_kp = rw_params.kp;
 			params.rw_ki = rw_params.ki;
 			params.rw_kd = rw_params.kd;
+
+			params.heading_kp = heading_params.kp;
+			params.heading_ki = heading_params.ki;
+			params.heading_kd = heading_params.kd;
 
 			bool on;
 			dcdcOnInfo.get(on);

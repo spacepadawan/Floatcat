@@ -70,7 +70,7 @@ public:
 		Pose pose;
 
 #ifdef CALIBRATE
-		int16_t calibrationCounter = 0, samples = 1000;
+		int16_t calibrationCounter = 0, samples = 100;
 		double gyroXSum = 0, gyroYSum = 0, gyroZSum = 0;
 		double accXSum = 0, accYSum = 0;
 #endif

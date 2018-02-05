@@ -33,7 +33,7 @@ public:
 	}
 
 	void loop(int64_t dt) {
-		float deltaT = dt / SECONDS;
+		float deltaT = (float) dt / (float) SECONDS;
 		float desired = 0;
 		desiredRotationSpeedBuffer.get(desired);
 
@@ -44,27 +44,27 @@ public:
 
 		//PRINTF("angularRate: %f ", angularRate);
 
-		float error =  poseDot.phi - desired;
+		float ctrl_error =  poseDot.phi - desired;
 
-		sum += error * deltaT;
+		sum += ctrl_error * deltaT;
 
-		if ((error >= 0 && lastError <= 0) || (error <= 0 && lastError >= 0)) {
+		if ((ctrl_error >= 0 && lastError <= 0) || (ctrl_error <= 0 && lastError >= 0)) {
 			sum = 0;
 		}
 
-		dif = (error - lastError) / deltaT;
+		dif = (ctrl_error - lastError) / deltaT;
 
 		angular_ctrl_params_buffer.get(params);
 
-		//PRINTF("kp: %f ", params.kp);
+		//PRINTF("kp: %f, error: %f, dif: %f, sum: %f", params.kp, ctrl_error, dif, sum);
 
-		float rps_rw = (params.kp * error * error * error - params.kd * dif + params.ki * sum);
+		float rps_rw = (params.kp * ctrl_error - params.kd * dif + params.ki * sum);
 
 		//PRINTF("commanded RPS: %f\n", rps_rw);
 
 		rw_cmd_vel.put(rps_rw);
 
-		lastError = error;
+		lastError = ctrl_error;
 	}
 };
 

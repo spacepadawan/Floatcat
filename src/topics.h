@@ -116,6 +116,7 @@ extern Topic<bool> dcdcOn;
 extern Topic<PID_ControlParameters> rw_ctrl_params;
 extern Topic<PID_ControlParameters> angular_ctrl_params;
 extern Topic<PID_ControlParameters> lateral_ctrl_params;
+extern Topic<PID_ControlParameters> heading_ctrl_params;
 
 extern CommBuffer<CalibrationData> imuCalibrationBuffer;
 extern CommBuffer<bool> dcdcOnBuffer;
@@ -124,6 +125,7 @@ extern CommBuffer<ServoData> servoCalibrationBuffer;
 extern CommBuffer<PID_ControlParameters> rw_ctrl_params_buffer;
 extern CommBuffer<PID_ControlParameters> angular_ctrl_params_buffer;
 extern CommBuffer<PID_ControlParameters> lateral_ctrl_params_buffer;
+extern CommBuffer<PID_ControlParameters> heading_ctrl_params_buffer;
 
 extern CommBuffer<CalibrationData> imuCalibrationInfo;
 extern CommBuffer<bool> dcdcOnInfo;
@@ -132,5 +134,6 @@ extern CommBuffer<ServoData> servoCalibrationInfo;
 extern CommBuffer<PID_ControlParameters> rw_ctrl_params_info;
 extern CommBuffer<PID_ControlParameters> angular_ctrl_params_info;
 extern CommBuffer<PID_ControlParameters> lateral_ctrl_params_info;
+extern CommBuffer<PID_ControlParameters> heading_ctrl_params_info;
 
 #endif /* TOPICS_H_ */

@@ -13,6 +13,8 @@
 #include "VL6180X.h"
 #include "../topics.h"
 
+#include "matlib.h"
+
 HAL_GPIO enableLeft(GPIO_033); //PC01
 HAL_GPIO enableRight(GPIO_035); //PC03
 
@@ -24,6 +26,16 @@ uint8_t rightAdress = 0x30;
 
 // Create both sensors with same address because this is the default one
 VL6180x sensorLeft(leftAdress, &i2c2, &sem_i2c2), sensorRight(leftAdress, &i2c2, &sem_i2c2);
+
+
+float getDistance(uint8_t left, uint8_t right) {
+	return ((float) left + (float) right) / 2;
+}
+
+float getAngle(uint8_t left, uint8_t right, float displacement) {
+	return atan2f(displacement, (float) (left - right));
+}
+
 
 class RangeSensorHandler : public Thread{
 

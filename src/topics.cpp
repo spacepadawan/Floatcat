@@ -74,6 +74,7 @@ Topic<bool> dcdcOn(-1, "DCDC");
 Topic<PID_ControlParameters> rw_ctrl_params(432, "rwParams");
 Topic<PID_ControlParameters> angular_ctrl_params(433, "angParams");
 Topic<PID_ControlParameters> lateral_ctrl_params(434, "latParams");
+Topic<PID_ControlParameters> heading_ctrl_params(435, "headingParams");
 
 CommBuffer<CalibrationData> imuCalibrationBuffer;
 Subscriber imuCalibSub1(calibTopic, imuCalibrationBuffer);
@@ -87,9 +88,11 @@ Subscriber servoDataSub1(servoCalibrationTopic, servoCalibrationBuffer);
 CommBuffer<PID_ControlParameters> rw_ctrl_params_buffer;
 CommBuffer<PID_ControlParameters> angular_ctrl_params_buffer;
 CommBuffer<PID_ControlParameters> lateral_ctrl_params_buffer;
+CommBuffer<PID_ControlParameters> heading_ctrl_params_buffer;
 Subscriber rw_ctrl_sub1(rw_ctrl_params, rw_ctrl_params_buffer);
 Subscriber angular_ctrl_sub1(angular_ctrl_params, angular_ctrl_params_buffer);
 Subscriber lateral_ctrl_sub1(lateral_ctrl_params, lateral_ctrl_params_buffer);
+Subscriber heading_ctr1_sub1(heading_ctrl_params, heading_ctrl_params_buffer);
 
 CommBuffer<CalibrationData> imuCalibrationInfo;
 Subscriber imuCalibSub2(calibTopic, imuCalibrationInfo);
@@ -103,6 +106,8 @@ Subscriber servoDataSub2(servoCalibrationTopic, servoCalibrationInfo);
 CommBuffer<PID_ControlParameters> rw_ctrl_params_info;
 CommBuffer<PID_ControlParameters> angular_ctrl_params_info;
 CommBuffer<PID_ControlParameters> lateral_ctrl_params_info;
+CommBuffer<PID_ControlParameters> heading_ctrl_params_info;
 Subscriber rw_ctrl_sub2(rw_ctrl_params, rw_ctrl_params_info);
 Subscriber angular_ctr2_sub1(angular_ctrl_params, angular_ctrl_params_info);
 Subscriber lateral_ctr2_sub1(lateral_ctrl_params, lateral_ctrl_params_info);
+Subscriber heading_ctr2_sub1(heading_ctrl_params, heading_ctrl_params_info);

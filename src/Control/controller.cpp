@@ -26,7 +26,7 @@ public:
 	ControlThread(const char* name) : Thread(name) { }
 
 	void init() {
-		mode = OP_MANUAL;
+		mode = OP_ANGULAR_RATE_CONTROL;
 		operationModeBuffer.put(mode);
 	}
 

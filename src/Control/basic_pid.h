@@ -46,14 +46,14 @@ void setActuators(float tx, float ty, float m, ActuatorMode mode) {
 
 
 		//if (m > 1.5 || m < -1.5)
-		//angularVel = m;
+		angularVel = m;
 		//desiredRotationSpeedBuffer.put(angularVel);
 		break;
 	default:
 		return;
 	}
 
-	//rw_cmd_vel.put(rw);
+	rw_cmd_vel.put(m);
 	thrusterPower.put(tp);
 
 	//PRINTF("thrusters: %f, %f, %f\n", tp.t1, tp.t2, tp.t3);
@@ -68,15 +68,20 @@ private:
 	Pose sum = {0};
 	Pose old;
 
-	PID_ControlParameters params;
+	PID_ControlParameters lat_params, heading_params;
 
 public:
 
 	void init() {
-		params.kp = 1;
-		params.kd = 0;
-		params.ki = 0;
-		lateral_ctrl_params.publish(params);
+		lat_params.kp = 1;
+		lat_params.kd = 0;
+		lat_params.ki = 0;
+		lateral_ctrl_params.publish(lat_params);
+
+		heading_params.kp = 1;
+		heading_params.kd = 0;
+		heading_params.ki = 0;
+		heading_ctrl_params.publish(heading_params);
 	}
 
 	void loop(int64_t dt) {
@@ -89,6 +94,9 @@ public:
 		Pose desired;
 		desiredPoseBuffer.get(desired);
 
+		Pose poseDot;
+		poseDotBuffer.get(poseDot);
+
 		//PRINTF("pose: %f, %f, %f\n", pose.x, pose.y, pose.phi);
 		//PRINTF("desired: %f, %f, %f\n", desired.x, desired.y, desired.phi);
 
@@ -100,14 +108,21 @@ public:
 
 		sum = sum + error * deltaT;
 
-		lateral_ctrl_params_buffer.get(params);
+		if ((pose.x > 0 && old.x < 0) || (pose.x < 0 && old.x > 0)) {
+			sum.x = 0;
+		}
 
+		if ((pose.y > 0 && old.y < 0) || (pose.y < 0 && old.y > 0)) {
+			sum.y = 0;
+		}
 
-		float kx = params.kp, ky = params.kp, k_phi = 1;
+		lateral_ctrl_params_buffer.get(lat_params);
+		heading_ctrl_params_buffer.get(heading_params);
 
-		float tx = kx * error.x;
-		float ty = ky * error.y;
-		float m = k_phi * error.phi;
+		float tx = lat_params.kp * error.x - lat_params.kd * poseDot.x + lat_params.ki * sum.x;
+		float ty = lat_params.kp * error.y - lat_params.kd * poseDot.y + lat_params.ki * sum.y;
+
+		float m = heading_params.kp * error.phi - heading_params.kd * poseDot.phi + heading_params.ki * sum.phi;
 
 		//PRINTF("control output1: %f, %f, %f\n", tx, ty, m);
 
