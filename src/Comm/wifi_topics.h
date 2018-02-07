@@ -43,6 +43,9 @@ struct Telemetry
 	float r_left, r_right;
 	float star_x, star_y, star_phi;
 	float x_dot, y_dot, phi_dot;
+	float ctrl_ex, ctrl_ey, ctrl_ephi, ctrl_tx, ctrl_ty, ctrl_m, ctrl_t1, ctrl_t2, ctrl_t3;
+	float radio_x1, radio_y1, radio_x2, radio_y2;
+	float obj_distance, obj_bearing, obj_heading;
 };
 
 struct ThrusterCommand

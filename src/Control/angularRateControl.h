@@ -17,7 +17,7 @@ class RPMControl {
 	float lastError = 0;
 	float dif = 0;
 
-	PID_ControlParameters params;
+
 
 public:
 
@@ -26,19 +26,19 @@ public:
 	}
 
 	void init() {
-		params.kp = 2;
+		PID_ControlParameters params;
+		params.kp = 10;
 		params.kd = 0;
 		params.ki = 0.0001;
 		angular_ctrl_params.publish(params);
 	}
 
-	void loop(int64_t dt) {
+	void loop(int64_t dt, Pose poseDot, float currentRPS, PID_ControlParameters params) {
 		float deltaT = (float) dt / (float) SECONDS;
 		float desired = 0;
 		desiredRotationSpeedBuffer.get(desired);
 
-		Pose poseDot;
-		poseDotBuffer.get(poseDot);
+
 
 		//angularRateBuffer.get(angularRate);
 
@@ -54,11 +54,10 @@ public:
 
 		dif = (ctrl_error - lastError) / deltaT;
 
-		angular_ctrl_params_buffer.get(params);
-
 		//PRINTF("kp: %f, error: %f, dif: %f, sum: %f", params.kp, ctrl_error, dif, sum);
 
-		float rps_rw = (params.kp * ctrl_error - params.kd * dif + params.ki * sum);
+		float rps_rw = 0;//(params.kp * ctrl_error - params.kd * dif + params.ki * sum);
+		rps_rw = currentRPS + ctrl_error * params.kp;
 
 		//PRINTF("commanded RPS: %f\n", rps_rw);
 

@@ -7,6 +7,9 @@
 
 #include "reaction_wheel_control.h"
 
+CommBuffer<PID_ControlParameters> rw_ctrl_params_buffer;
+Subscriber rw_ctrl_sub1(rw_ctrl_params, rw_ctrl_params_buffer);
+
 ReactionWheelController::ReactionWheelController(ReactionWheel *rw, Encoder *enc) : rw(rw), enc(enc) {
 	rps_des = 0;
 	pwm_inf = 0;

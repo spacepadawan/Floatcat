@@ -61,8 +61,8 @@ Pose Filter::filterPose(SensorData* sd, uint64_t dt) {
 	//vx += ax * deltaT * 9.81;
 	//vy += ay * deltaT * 9.81;
 
-	pose.x += vx * deltaT;
-	pose.y += vy * deltaT;
+	//pose.x += vx * deltaT;
+	//pose.y += vy * deltaT;
 
 	return pose;
 }
@@ -74,18 +74,18 @@ void Filter::updatePose(Pose p) {
 	oldPose = pose;
 	pose = p;
 
-	if (timeDif > 2 * SECONDS) {
+	if (timeDif > 2 * SECONDS || timeDif < 100 * MILLISECONDS) {
 		vx = 0;
 		vy = 0;
 	} else {
-		poseDot.x = (pose.x - oldPose.x) /  ((float) timeDif / SECONDS);
-		poseDot.y = (pose.y - oldPose.y) /  ((float) timeDif / SECONDS);
+		poseDot.x = (pose.x - oldPose.x) /  ((float) timeDif / (float) SECONDS);
+		poseDot.y = (pose.y - oldPose.y) /  ((float) timeDif / (float) SECONDS);
 	}
 
-	poseDot.x = poseDot.x > 0.5 ? 0.5 : poseDot.x;
-	poseDot.x = poseDot.x < -0.5 ? -0.5 : poseDot.x;
-	poseDot.y = poseDot.y > 0.5 ? 0.5 : poseDot.x;
-	poseDot.y = poseDot.y < -0.5 ? -0.5 : poseDot.x;
+	//poseDot.x = poseDot.x > 0.5 ? 0.5 : poseDot.x;
+	//poseDot.x = poseDot.x < -0.5 ? -0.5 : poseDot.x;
+	//poseDot.y = poseDot.y > 0.5 ? 0.5 : poseDot.x;
+	//poseDot.y = poseDot.y < -0.5 ? -0.5 : poseDot.x;
 
 	// delete if necessary
 	//vx = vy = 0;

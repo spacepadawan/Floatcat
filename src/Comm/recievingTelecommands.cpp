@@ -12,6 +12,25 @@
 #include "cmd_ids.h"
 #include "../topics.h"
 
+CommBuffer<PID_ControlParameters> rw_ctrl_params_info;
+CommBuffer<PID_ControlParameters> angular_ctrl_params_info;
+CommBuffer<PID_ControlParameters> lateral_ctrl_params_info;
+CommBuffer<PID_ControlParameters> heading_ctrl_params_info;
+Subscriber rw_ctrl_sub2(rw_ctrl_params, rw_ctrl_params_info);
+Subscriber angular_ctr2_sub1(angular_ctrl_params, angular_ctrl_params_info);
+Subscriber lateral_ctr2_sub1(lateral_ctrl_params, lateral_ctrl_params_info);
+Subscriber heading_ctr2_sub1(heading_ctrl_params, heading_ctrl_params_info);
+
+CommBuffer<CalibrationData> imuCalibrationInfo;
+Subscriber imuCalibSub2(calibTopic, imuCalibrationInfo);
+
+CommBuffer<bool> dcdcOnInfo;
+Subscriber dcdcSub2(dcdcOn, dcdcOnInfo);
+
+CommBuffer<ServoData> servoCalibrationInfo;
+Subscriber servoDataSub2(servoCalibrationTopic, servoCalibrationInfo);
+
+
 class ParameterChangeHandler : public SubscriberReceiver<Parameters> {
 
 public:
@@ -305,6 +324,10 @@ public:
 			break;
 		case CMD_SET_MODE_ANGULAR_CONTROL:
 			mode = OP_ANGULAR_RATE_CONTROL;
+			operationModeBuffer.put(mode);
+			break;
+		case CMD_SET_MODE_HEADING_CONTROL:
+			mode = OP_HEADING_CONTROL;
 			operationModeBuffer.put(mode);
 			break;
 		case CMD_SET_MODE_POSE_CONTROL:

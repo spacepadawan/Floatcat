@@ -13,7 +13,7 @@
 struct Pose {
 	float x, y, phi;
 
-	Pose diff(Pose other) {
+	Pose diff(Pose other) const {
 		Pose out;
 		out.x = x - other.x;
 		out.y = y - other.y;
@@ -21,7 +21,7 @@ struct Pose {
 		return out;
 	}
 
-	Pose add(Pose other) {
+	Pose add(Pose other) const {
 		Pose out;
 		out.x = x + other.x;
 		out.y = y + other.y;
@@ -29,7 +29,7 @@ struct Pose {
 		return out;
 	}
 
-	Pose scale(float factor) {
+	Pose scale(float factor) const {
 		Pose out;
 		out.x = x * factor;
 		out.y = y * factor;
@@ -37,7 +37,7 @@ struct Pose {
 		return out;
 	}
 
-	Pose rotate(float angle) {
+	Pose rotate(float angle) const {
 		Pose local;
 
 		float s = sin(angle * M_PI / 180);
@@ -50,9 +50,10 @@ struct Pose {
 		return local;
 	}
 
-	Pose operator-(Pose other) { return diff(other); }
-	Pose operator+(Pose other) { return add(other); }
-	Pose operator*(float factor) { return scale(factor); }
+	Pose operator-(Pose other) const { return diff(other); }
+	Pose operator+(Pose other) const { return add(other); }
+	Pose operator*(float factor) const { return scale(factor); }
+	Pose operator/(float denominator) const { return scale(1 / denominator); }
 };
 
 

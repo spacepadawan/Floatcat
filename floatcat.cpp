@@ -65,6 +65,9 @@ Encoder enc;
 #define ENCODER_BEAT	(10*MILLISECONDS)
 #define POWER_THRESHOLD		12
 
+CommBuffer<bool> dcdcOnBuffer;
+Subscriber dcdcSub1(dcdcOn, dcdcOnBuffer);
+
 class PowerThread : public Thread {
 	PowerManager powerManager;
 
@@ -162,6 +165,9 @@ public:
 ActuatorHandler actuatorHandler("ActuatorHandler");
 
 
+CommBuffer<ServoData> servoCalibrationBuffer;
+Subscriber servoDataSub1(servoCalibrationTopic, servoCalibrationBuffer);
+
 class ServoHandler: public Thread {
 private:
 
@@ -183,9 +189,9 @@ public:
 	void run() {
 
 		ServoData offsets;
-		offsets.pos1 = -7;
-		offsets.pos2 = 6;
-		offsets.pos3 = -3;
+		offsets.pos1 = 0;
+		offsets.pos2 = 0;
+		offsets.pos3 = -1;
 		offsets.pos4 = 0;
 		servoCalibrationTopic.publish(offsets);
 

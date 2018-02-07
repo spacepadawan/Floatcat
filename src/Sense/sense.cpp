@@ -29,6 +29,9 @@ HAL_GPIO imuEN(GPIO_055);
 
 Semaphore senseSemaphore;
 
+CommBuffer<CalibrationData> imuCalibrationBuffer;
+Subscriber imuCalibSub1(calibTopic, imuCalibrationBuffer);
+
 #define SENSE_PERIOD	(10 * MILLISECONDS)
 
 class Sense: public Thread {
@@ -49,25 +52,25 @@ public:
 
 	void init() {
 		setPeriodicBeat(0, SENSE_PERIOD);
-		spi.reset();
-		spi.init();
 
 		Pose initPose;
 		initPose.phi = 0;
 		initPose.x = 1;
 		initPose.y = 1;
-
-		poseBuffer.put(initPose);
-
-		imu.init();
 	}
 
 #define CALIBRATE
 
 	void run() {
 
+		spi.reset();
+		spi.init();
+
 		SensorData sd;
-		Pose pose;
+		Pose pose = {0};
+		poseTopic.publish(pose);
+
+		imu.init();
 
 #ifdef CALIBRATE
 		int16_t calibrationCounter = 0, samples = 100;
@@ -92,6 +95,8 @@ public:
 				accXSum += sd.accelerometer.x;
 				accYSum += sd.accelerometer.y;
 
+				//PRINTF("CALIB: gz: %f, calib: %f\n", sd.gyroscope.z, calib.gz);
+
 				calibrationCounter++;
 			} else if (calibrationCounter == samples) {
 				accXSum /= samples;
@@ -110,7 +115,10 @@ public:
 				sd.accelerometer.x -= calib.ax;
 				sd.accelerometer.y -= calib.ay;
 				sd.gyroscope.z -= calib.gz;
-				SensorDataTopic.publish(sd, false);
+
+				//PRINTF("gz: %f, calib: %f\n", sd.gyroscope.z, calib.gz);
+
+				SensorDataTopic.publish(sd);
 				Pose pose = filter.filterPose(&sd, SENSE_PERIOD);
 				poseTopic.publish(pose);
 			}

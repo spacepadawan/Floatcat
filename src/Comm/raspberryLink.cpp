@@ -39,6 +39,7 @@ struct Message {
 inline void handleMessage(Message &msg) {
 	switch(msg.type) {
 	case ST:
+	{
 		if (msg.numberOfArguments < 3) {
 			return;
 		}
@@ -53,12 +54,34 @@ inline void handleMessage(Message &msg) {
 
 		starTrackerPoseTopic.publish(p);
 		break;
+	}
 	case OT:
+	{
+		if (msg.numberOfArguments < 3) {
+			return;
+		}
 
+		Pose relPose;
+
+		relPose.x = msg.args[0];
+		relPose.y = msg.args[1];
+		relPose.phi = msg.args[2];
 		break;
+	}
 	case RD:
+	{
+		if (msg.numberOfArguments < 4) {
+			return;
+		}
+
+		RadioData rd;
+		rd.x1 = msg.args[0];
+		rd.y1 = msg.args[1];
+		rd.x2 = msg.args[2];
+		rd.y2 = msg.args[3];
 
 		break;
+	}
 	}
 }
 
